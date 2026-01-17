@@ -167,6 +167,22 @@ btnTransfer.addEventListener("click", function (e) {
   } else console.log("Transfer is NOT valid");
 });
 
+//Loan Event Handler
+btnLoan.addEventListener("click", function (e) {
+  e.preventDefault();
+
+  const amount = Number(inputLoanAmount.value);
+  if (
+    amount > 0 &&
+    currentAccount.movements.some((mov) => mov >= 0.1 * amount)
+  ) {
+    currentAccount.movements.push(amount);
+    updateUI(currentAccount);
+    console.log("You requested a loan");
+    inputLoanAmount.value = "";
+  }
+});
+
 //Closing Account Event Handler
 btnClose.addEventListener("click", function (e) {
   e.preventDefault();
