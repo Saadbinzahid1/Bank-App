@@ -69,8 +69,8 @@ function displayMovements(movements) {
 
     const html = `<div class="movements__row">
         <div class="movements__type movements__type--${type}">${
-      i + 1
-    } ${type}</div>
+          i + 1
+        } ${type}</div>
         <div class="movements__value">${mov}€</div>
       </div>`;
 
@@ -79,31 +79,29 @@ function displayMovements(movements) {
 }
 displayMovements(account1.movements);
 
-function calcDisplayBalanace(movements) {
-  const balance = movements.reduce((acc, curr) => acc + curr, 0);
-  labelBalance.textContent = `${balance}€`;
+function calcDisplayBalanace(acc) {
+  acc.balance = acc.movements.reduce((acc, curr) => acc + curr, 0);
+  labelBalance.textContent = `${acc.balance}€`;
 }
-calcDisplayBalanace(account1.movements);
 
-function calcDisplaySummary(movements) {
-  const incomes = movements
+function calcDisplaySummary(acc) {
+  const incomes = acc.movements
     .filter((mov) => mov > 0)
     .reduce((acc, mov) => acc + mov);
   labelSumIn.textContent = `${incomes}€`;
 
-  const out = movements
+  const out = acc.movements
     .filter((mov) => mov < 0)
     .reduce((acc, mov) => acc + mov);
   labelSumOut.textContent = `${Math.abs(out)}€`;
 
-  const interest = movements
+  const interest = acc.movements
     .filter((mov) => mov > 0)
-    .map((mov) => mov * 0.012)
+    .map((mov) => mov * acc.interestRate)
     .filter((mov) => mov >= 1)
     .reduce((acc, mov) => acc + mov);
-  labelSumInterest.textContent = `${interest}€`;
+  labelSumInterest.textContent = `${interest.toFixed(2)}€`;
 }
-calcDisplaySummary(account1.movements);
 
 function createUsernames(accs) {
   accs.forEach(function (accs) {
@@ -115,3 +113,56 @@ function createUsernames(accs) {
   });
 }
 createUsernames(accounts);
+
+//Update UI
+function updateUI(acc) {
+  displayMovements(currentAccount.movements);
+  calcDisplayBalanace(currentAccount);
+  calcDisplaySummary(currentAccount);
+}
+
+//Login Event Handler
+let currentAccount;
+btnLogin.addEventListener("click", function (e) {
+  e.preventDefault();
+
+  currentAccount = accounts.find(
+    (acc) => acc.userName === inputLoginUsername.value,
+  );
+
+  if (Number(inputLoginPin.value) === currentAccount?.pin) {
+    containerApp.style.opacity = 100;
+
+    inputLoginUsername.value = inputLoginPin.value = "";
+    inputLoginPin.blur();
+
+    labelWelcome.textContent = `Welcome back, ${currentAccount.owner.split(" ")[0]}`;
+
+    updateUI(currentAccount);
+  }
+});
+
+//Transfer Event Handler
+btnTransfer.addEventListener("click", function (e) {
+  e.preventDefault();
+
+  const amount = Number(inputTransferAmount.value);
+  const receiverAcc = accounts.find(
+    (acc) => acc.userName === inputTransferTo.value,
+  );
+
+  if (
+    amount > 0 &&
+    receiverAcc &&
+    currentAccount.balance >= amount &&
+    receiverAcc.userName !== currentAccount.userName
+  ) {
+    inputTransferAmount.value = "";
+    inputTransferTo.value = "";
+
+    receiverAcc.movements.push(amount);
+    currentAccount.movements.push(-amount);
+
+    updateUI(currentAccount);
+  } else console.log("Transfer is NOT valid");
+});
