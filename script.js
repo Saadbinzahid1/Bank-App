@@ -166,3 +166,20 @@ btnTransfer.addEventListener("click", function (e) {
     updateUI(currentAccount);
   } else console.log("Transfer is NOT valid");
 });
+
+//Closing Account Event Handler
+btnClose.addEventListener("click", function (e) {
+  e.preventDefault();
+  if (
+    inputCloseUsername.value === currentAccount.userName &&
+    Number(inputClosePin.value) === currentAccount.pin
+  ) {
+    const index = accounts.findIndex(
+      (acc) => (acc.userName = currentAccount.userName),
+    );
+    accounts.splice(index, 1);
+    containerApp.style.opacity = 0;
+    console.log("Account is deleted");
+    inputCloseUsername.value = inputClosePin.value = "";
+  } else console.log("Wrong credentials");
+});
