@@ -212,10 +212,42 @@ function updateUI(acc) {
   calcDisplaySummary(acc);
 }
 
+function startLogoutTimer() {
+  let time = 100;
+  let min;
+  let sec;
+
+  function tick() {
+    min = `${Math.trunc(time / 60)}`.padStart(2, 0);
+    sec = `${time % 60}`.padStart(2, 0);
+
+    labelTimer.textContent = `${min}:${sec}`;
+
+    if (time === 0) {
+      clearInterval(timer);
+      labelWelcome.textContent = `Log in to get started`;
+      containerApp.style.opacity = 0;
+    }
+    time--;
+  }
+
+  tick();
+  const timer = setInterval(tick, 1000);
+  return timer;
+}
+
+///////////////////////////////////////
+//Event Handlers
+
 //Login Event Handler
-let currentAccount;
+let currentAccount, timer;
+
 btnLogin.addEventListener("click", function (e) {
   e.preventDefault();
+
+  //Timer Functionality
+  if (timer) clearInterval(timer);
+  timer = startLogoutTimer();
 
   currentAccount = accounts.find(
     (acc) => acc.userName === inputLoginUsername.value,
@@ -274,6 +306,10 @@ btnTransfer.addEventListener("click", function (e) {
 
     updateUI(currentAccount);
   } else console.log("Transfer is NOT valid");
+
+  //Resetting Timer
+  clearInterval(timer);
+  timer = startLogoutTimer();
 });
 
 //Loan Event Handler
@@ -290,6 +326,10 @@ btnLoan.addEventListener("click", function (e) {
     updateUI(currentAccount);
     console.log("You requested a loan");
     inputLoanAmount.value = "";
+
+    //Resetting Timer
+    clearInterval(timer);
+    timer = startLogoutTimer();
   }
 });
 
