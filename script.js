@@ -10,6 +10,19 @@ const account1 = {
   movements: [200, 450, -400, 3000, -650, -130, 70, 1300],
   interestRate: 1.2, // %
   pin: 1111,
+
+  movementsDates: [
+    "2019-11-18T21:31:17.178Z",
+    "2019-12-23T07:42:02.383Z",
+    "2020-01-28T09:15:04.904Z",
+    "2020-04-01T10:17:24.185Z",
+    "2020-05-08T14:11:59.604Z",
+    "2020-05-27T17:01:17.194Z",
+    "2020-07-11T23:36:17.929Z",
+    "2020-07-12T10:51:36.790Z",
+  ],
+  currency: "EUR",
+  locale: "pt-PT", // de-DE
 };
 
 const account2 = {
@@ -17,6 +30,19 @@ const account2 = {
   movements: [5000, 3400, -150, -790, -3210, -1000, 8500, -30],
   interestRate: 1.5,
   pin: 2222,
+
+  movementsDates: [
+    "2019-11-01T13:15:33.035Z",
+    "2019-11-30T09:48:16.867Z",
+    "2019-12-25T06:04:23.907Z",
+    "2020-01-25T14:18:46.235Z",
+    "2020-02-05T16:33:06.386Z",
+    "2020-04-10T14:43:26.374Z",
+    "2020-06-25T18:49:59.371Z",
+    "2020-07-26T12:01:20.894Z",
+  ],
+  currency: "USD",
+  locale: "en-US",
 };
 
 const account3 = {
@@ -24,6 +50,19 @@ const account3 = {
   movements: [200, -200, 340, -300, -20, 50, 400, -460],
   interestRate: 0.7,
   pin: 3333,
+
+  movementsDates: [
+    "2019-10-15T08:23:45.123Z",
+    "2019-11-01T10:51:36.790Z",
+    "2019-11-25T14:11:59.604Z",
+    "2019-12-10T09:15:04.904Z",
+    "2020-01-05T16:33:06.386Z",
+    "2020-02-14T11:01:17.194Z",
+    "2020-03-20T18:49:59.371Z",
+    "2020-04-25T12:01:20.894Z",
+  ],
+  currency: "GBP",
+  locale: "en-GB",
 };
 
 const account4 = {
@@ -31,6 +70,16 @@ const account4 = {
   movements: [430, 1000, 700, 50, 90],
   interestRate: 1,
   pin: 4444,
+
+  movementsDates: [
+    "2019-11-05T13:15:33.035Z",
+    "2019-12-12T09:48:16.867Z",
+    "2020-01-18T06:04:23.907Z",
+    "2020-02-10T14:18:46.235Z",
+    "2020-03-15T16:33:06.386Z",
+  ],
+  currency: "USD",
+  locale: "en-US",
 };
 
 const accounts = [account1, account2, account3, account4];
@@ -61,41 +110,44 @@ const inputLoanAmount = document.querySelector(".form__input--loan-amount");
 const inputCloseUsername = document.querySelector(".form__input--user");
 const inputClosePin = document.querySelector(".form__input--pin");
 
-function displayMovements(movements, sort = false) {
+function displayMovements(acc, sort = false) {
   containerMovements.innerHTML = "";
 
-  const movs = sort ? movements.slice().sort((a, b) => a - b) : movements;
+  const movs = sort
+    ? acc.movements.slice().sort((a, b) => a - b)
+    : acc.movements;
 
   movs.forEach(function (mov, i) {
     const type = mov > 0 ? "deposit" : "withdrawal";
-
+    const date = new Date(acc.movementsDates[i]);
+    const displayDate = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
     const html = `<div class="movements__row">
         <div class="movements__type movements__type--${type}">${
           i + 1
         } ${type}</div>
-        <div class="movements__value">${mov}€</div>
+        <div class="movements__date">${displayDate}</div>
+        <div class="movements__value">${mov.toFixed(2)}€</div>
       </div>`;
 
     containerMovements.insertAdjacentHTML("afterbegin", html);
   });
 }
-displayMovements(account1.movements);
 
 function calcDisplayBalanace(acc) {
   acc.balance = acc.movements.reduce((acc, curr) => acc + curr, 0);
-  labelBalance.textContent = `${acc.balance}€`;
+  labelBalance.textContent = `${acc.balance.toFixed(2)}€`;
 }
 
 function calcDisplaySummary(acc) {
   const incomes = acc.movements
     .filter((mov) => mov > 0)
     .reduce((acc, mov) => acc + mov);
-  labelSumIn.textContent = `${incomes}€`;
+  labelSumIn.textContent = `${incomes.toFixed(2)}€`;
 
   const out = acc.movements
     .filter((mov) => mov < 0)
     .reduce((acc, mov) => acc + mov);
-  labelSumOut.textContent = `${Math.abs(out)}€`;
+  labelSumOut.textContent = `${Math.abs(out).toFixed(2)}€`;
 
   const interest = acc.movements
     .filter((mov) => mov > 0)
@@ -118,9 +170,9 @@ createUsernames(accounts);
 
 //Update UI
 function updateUI(acc) {
-  displayMovements(currentAccount.movements);
-  calcDisplayBalanace(currentAccount);
-  calcDisplaySummary(currentAccount);
+  displayMovements(acc);
+  calcDisplayBalanace(acc);
+  calcDisplaySummary(acc);
 }
 
 //Login Event Handler
@@ -128,11 +180,15 @@ let currentAccount;
 btnLogin.addEventListener("click", function (e) {
   e.preventDefault();
 
+  //Date Handling
+  const now = new Date();
+  labelDate.textContent = `${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}, ${now.getHours()}:${now.getMinutes()}`;
+
   currentAccount = accounts.find(
     (acc) => acc.userName === inputLoginUsername.value,
   );
 
-  if (Number(inputLoginPin.value) === currentAccount?.pin) {
+  if (+inputLoginPin.value === currentAccount?.pin) {
     containerApp.style.opacity = 100;
 
     inputLoginUsername.value = inputLoginPin.value = "";
@@ -148,7 +204,7 @@ btnLogin.addEventListener("click", function (e) {
 btnTransfer.addEventListener("click", function (e) {
   e.preventDefault();
 
-  const amount = Number(inputTransferAmount.value);
+  const amount = +inputTransferAmount.value;
   const receiverAcc = accounts.find(
     (acc) => acc.userName === inputTransferTo.value,
   );
@@ -162,6 +218,10 @@ btnTransfer.addEventListener("click", function (e) {
     inputTransferAmount.value = "";
     inputTransferTo.value = "";
 
+    //Add transfer date
+    currentAccount.movementsDates.push(new Date());
+    receiverAcc.movementsDates.push(new Date());
+
     receiverAcc.movements.push(amount);
     currentAccount.movements.push(-amount);
 
@@ -173,12 +233,13 @@ btnTransfer.addEventListener("click", function (e) {
 btnLoan.addEventListener("click", function (e) {
   e.preventDefault();
 
-  const amount = Number(inputLoanAmount.value);
+  const amount = Math.round(inputLoanAmount.value);
   if (
     amount > 0 &&
     currentAccount.movements.some((mov) => mov >= 0.1 * amount)
   ) {
     currentAccount.movements.push(amount);
+    currentAccount.movementsDates.push(new Date());
     updateUI(currentAccount);
     console.log("You requested a loan");
     inputLoanAmount.value = "";
@@ -190,7 +251,7 @@ btnClose.addEventListener("click", function (e) {
   e.preventDefault();
   if (
     inputCloseUsername.value === currentAccount.userName &&
-    Number(inputClosePin.value) === currentAccount.pin
+    +inputClosePin.value === currentAccount.pin
   ) {
     const index = accounts.findIndex(
       (acc) => (acc.userName = currentAccount.userName),
