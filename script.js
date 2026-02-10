@@ -245,35 +245,37 @@ let currentAccount, timer;
 btnLogin.addEventListener("click", function (e) {
   e.preventDefault();
 
-  //Timer Functionality
-  if (timer) clearInterval(timer);
-  timer = startLogoutTimer();
-
   currentAccount = accounts.find(
     (acc) => acc.userName === inputLoginUsername.value,
   );
 
-  //Date Handling
-  const options = {
-    minute: "numeric",
-    hour: "numeric",
-    day: "numeric",
-    month: "numeric",
-    year: "numeric",
-  };
-  const now = new Date();
-  labelDate.textContent = new Intl.DateTimeFormat(
-    currentAccount.locale,
-    options,
-  ).format(now);
-
   if (+inputLoginPin.value === currentAccount?.pin) {
+    // Timer
+    if (timer) clearInterval(timer);
+    timer = startLogoutTimer();
+
+    // Date
+    const options = {
+      minute: "numeric",
+      hour: "numeric",
+      day: "numeric",
+      month: "numeric",
+      year: "numeric",
+    };
+    const now = new Date();
+    labelDate.textContent = new Intl.DateTimeFormat(
+      currentAccount.locale,
+      options,
+    ).format(now);
+
     containerApp.style.opacity = 100;
+
+    labelWelcome.textContent = `Welcome back, ${
+      currentAccount.owner.split(" ")[0]
+    }`;
 
     inputLoginUsername.value = inputLoginPin.value = "";
     inputLoginPin.blur();
-
-    labelWelcome.textContent = `Welcome back, ${currentAccount.owner.split(" ")[0]}`;
 
     updateUI(currentAccount);
   }
@@ -341,7 +343,7 @@ btnClose.addEventListener("click", function (e) {
     +inputClosePin.value === currentAccount.pin
   ) {
     const index = accounts.findIndex(
-      (acc) => (acc.userName = currentAccount.userName),
+      (acc) => acc.userName === currentAccount.userName,
     );
     accounts.splice(index, 1);
     containerApp.style.opacity = 0;
@@ -354,6 +356,6 @@ btnClose.addEventListener("click", function (e) {
 let sorted = false;
 btnSort.addEventListener("click", function (e) {
   e.preventDefault();
-  displayMovements(currentAccount.movements, !sorted);
+  displayMovements(currentAccount, !sorted);
   sorted = !sorted;
 });
